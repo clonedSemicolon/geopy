@@ -1,0 +1,48 @@
+# ===================================================================
+# DynaPyt CallGraph — geopy
+#
+# Add this to your fork of geopy/geopy:
+#   .github/workflows/dynapyt-callgraph.yml
+#
+# Triggers: manual (workflow_dispatch)
+# Artifacts: dynapyt.json (call graph)
+# ===================================================================
+
+name: DynaPyt CallGraph
+
+on:
+  workflow_dispatch:
+
+jobs:
+  callgraph:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Install project dependencies
+        run: |
+          if [ -f pyproject.toml ] || [ -f setup.py ] || [ -f setup.cfg ]; then
+            pip install -e ".[dev,test,tests]" 2>/dev/null || pip install -e "." 2>/dev/null || true
+          fi
+
+      - name: Setup DynaPyt
+        uses: clonedSemicolon/seytup-dynapyt@master
+        with:
+          directory: geopy
+
+      - name: Run tests
+        run: pytest test -v
+
+      - name: Upload DynaPyt artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dynapyt-geopy
+          path: dynapyt.json
+          retention-days: 30
