@@ -1,0 +1,45 @@
+# ===================================================================
+# CIntent CallGraph — geopy
+#
+# Add this to your fork of geopy/geopy:
+#   .github/workflows/cintent-callgraph.yml
+#
+# Triggers: manual (workflow_dispatch)
+# Artifacts: CIntent profiling logs (sysmonitor CSV + eBPF traces)
+# ===================================================================
+
+name: CIntent CallGraph
+
+on:
+  workflow_dispatch:
+
+jobs:
+  callgraph:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Install project dependencies
+        run: |
+          if [ -f pyproject.toml ] || [ -f setup.py ] || [ -f setup.cfg ]; then
+            pip install -e ".[dev,test,tests]" 2>/dev/null || pip install -e "." 2>/dev/null || true
+          fi
+
+      - uses: clonedSemicolon/setup-cintent@main
+
+      - name: Run tests
+        run: pytest test -v
+
+      - name: Upload CIntent Artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cintent-geopy
+          path: ${{ env.CINTENT_LOGS }}
+          retention-days: 30
