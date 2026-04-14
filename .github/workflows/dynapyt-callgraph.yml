@@ -16,7 +16,7 @@ on:
 jobs:
   callgraph:
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 720
     steps:
       - uses: actions/checkout@v4
 
